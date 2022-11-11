@@ -17,29 +17,38 @@ class UDP:
 serverName = 'localhost'
 serverPort = 18111
 clientSocket = socket(AF_INET, SOCK_DGRAM)
-udpServer = UDP()
-while 1:
-    print("1.) Get file from server")
-    print("2.) Quit")
-    message = input('select option: ')
-    if(message == '2'): break
-    elif(message != '1'):print("invalid option")
-    else:
-        os.system('cls')
-        print("HTTP VERSION\n1.)HTTP 1.0\n2.)HTTP 1.1")
-        message = input('select option: ')
-        if(message == '1'): udpServer.HTTP_CLIENT_VERSION = 1.0
-        elif(message == '2'): udpServer.HTTP_CLIENT_VERSION = 1.1
-        else:
-            print("invalid option")
-        
-        udpServer.UDP_SYN_FLAG = 1      # syn message
-        udpServer.PAYLOAD_LENGTH = 1    # 1 for syn
-        data_string = pickle.dumps(udpServer)
-        clientSocket.sendto(data_string,(serverName, serverPort)) # sends udpclient class
 
-        '''
-        modifiedMessage, serverAddress = clientSocket.recvfrom(2048)
-        print (modifiedMessage.decode())
-        '''
-        #clientSocket.close()
+def send_syn(dataObj):
+    dataObj.UDP_SYN_FLAG = 1      # syn message
+    dataObj.PAYLOAD_LENGTH = 1    # 1 for syn
+    data_string = pickle.dumps(dataObj)
+    clientSocket.sendto(data_string,(serverName, serverPort)) # sends udpclient class
+
+if __name__ == '__main__':
+    while 1:
+        print("1.) Get file from server\n2.) Quit")
+        message = input('select option: ')
+        if(message == '2'): break
+        elif(message != '1'):print("invalid option")
+        else:
+            clientDatagram = UDP()
+            os.system('cls')
+            print("HTTP VERSION\n1.)HTTP 1.0\n2.)HTTP 1.1")
+            message = input('select option: ')
+            if(message != '1' and message != '2'): print("invalid option")
+            else:
+                if(message == '1'): clientDatagram.HTTP_CLIENT_VERSION = 1.0
+                elif(message == '2'): clientDatagram.HTTP_CLIENT_VERSION = 1.1
+                send_syn(clientDatagram)
+                print("sent SYN")
+                dataGramE, serverAddress = clientSocket.recvfrom(2048)
+                dataGram = pickle.loads(dataGramE)
+                print("recieved ACK")
+            
+            
+
+            '''
+            modifiedMessage, serverAddress = clientSocket.recvfrom(2048)
+            print (modifiedMessage.decode())
+            '''
+            #clientSocket.close()

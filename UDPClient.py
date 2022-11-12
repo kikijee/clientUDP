@@ -13,7 +13,7 @@ class UDP:
         self.HTTP_CLIENT_VERSION = 0
         self.HTTP_REQUEST_PATH = "" 
         self.TEXT = ""
-        self.HTTP_INCLUDED_OBJECT = 0
+        self.HTTP_INCLUDED_OBJECT = ""
 
 
 serverName = 'localhost'
@@ -32,6 +32,18 @@ def send_http_req(path,ver):
     dataObj.HTTP_GET_REQUEST = 1
     dataObj.HTTP_REQUEST_PATH = path
     dataObj.HTTP_CLIENT_VERSION = ver
+    data_string = pickle.dumps(dataObj)
+    clientSocket.sendto(data_string,(serverName, serverPort)) # sends udpclient class
+
+def send_ack():
+    dataObj = UDP()
+    dataObj.UDP_ACK_FLAG = 1      # ack message
+    data_string = pickle.dumps(dataObj)
+    clientSocket.sendto(data_string,(serverName, serverPort)) # sends udpclient class
+
+def send_fin():
+    dataObj = UDP()
+    dataObj.UDP_FIN_FLAG = 1      # fin message
     data_string = pickle.dumps(dataObj)
     clientSocket.sendto(data_string,(serverName, serverPort)) # sends udpclient class
 
@@ -57,11 +69,23 @@ if __name__ == '__main__':
                 dataGram = pickle.loads(dataGramE)
                 if(dataGram.UDP_SYN_FLAG ==  1 and dataGram.UDP_ACK_FLAG == 1):
                     print("recieved SYN and ACK")
+                    send_ack()
 
                 path = input("please enter path: ") 
                 send_http_req(path,clientVer)
-                
-
+                print("sent http req")
+                dataGramE, serverAddress = clientSocket.recvfrom(2048)
+                dataGram = pickle.loads(dataGramE)
+                if(dataGram.HTTP_RESPONSE_STATUS_CODE == 404):
+                    print("404 Page not found")
+                    send_fin()
+                    print("sent FIN")
+                    dataGramE, serverAddress = clientSocket.recvfrom(2048)
+                    dataGram = pickle.loads(dataGramE)
+                    if(dataGram.UDP_FIN_FLAG ==  1 and dataGram.UDP_ACK_FLAG == 1):
+                        print("recieved FIN & ACK")
+                        send_ack()
+                        print("sent ACK")
 
 
             

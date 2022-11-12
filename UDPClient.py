@@ -71,22 +71,42 @@ if __name__ == '__main__':
                     print("recieved SYN and ACK")
                     send_ack()
 
-                path = input("please enter path: ") 
-                send_http_req(path,clientVer)
-                print("sent http req")
-                dataGramE, serverAddress = clientSocket.recvfrom(2048)
-                dataGram = pickle.loads(dataGramE)
-                if(dataGram.HTTP_RESPONSE_STATUS_CODE == 404):
-                    print("404 Page not found")
-                    send_fin()
-                    print("sent FIN")
+                path = input("please enter path: ")
+                while path:
+                    send_http_req(path,clientVer)
+                    print("sent http req")
                     dataGramE, serverAddress = clientSocket.recvfrom(2048)
                     dataGram = pickle.loads(dataGramE)
-                    if(dataGram.UDP_FIN_FLAG ==  1 and dataGram.UDP_ACK_FLAG == 1):
-                        print("recieved FIN & ACK")
-                        send_ack()
-                        print("sent ACK")
+                    if(dataGram.HTTP_RESPONSE_STATUS_CODE == 404):
+                        print("404 Page not found")
+                        break
+                    else:
+                        if '\n' in dataGram.TEXT: print(f"202, {dataGram.TEXT}", end = "")
+                        else: print(f"202, {dataGram.TEXT}")
+                        if(not dataGram.HTTP_INCLUDED_OBJECT):
+                          break
+                        else:
+                            if(dataGram.HTTP_CLIENT_VERSION == 1.1): path = dataGram.HTTP_INCLUDED_OBJECT
+                            else:
+                                path = dataGram.HTTP_INCLUDED_OBJECT
+                                send_fin()
+                                print("sent FIN")
+                                dataGramE, serverAddress = clientSocket.recvfrom(2048)
+                                dataGram = pickle.loads(dataGramE)
+                                if(dataGram.UDP_FIN_FLAG ==  1 and dataGram.UDP_ACK_FLAG == 1):
+                                    print("recieved FIN & ACK")
+                                    send_ack()
+                                    print("sent ACK")
 
+                send_fin()
+                print("sent FIN")
+                dataGramE, serverAddress = clientSocket.recvfrom(2048)
+                dataGram = pickle.loads(dataGramE)
+                if(dataGram.UDP_FIN_FLAG ==  1 and dataGram.UDP_ACK_FLAG == 1):
+                    print("recieved FIN & ACK")
+                    send_ack()
+                    print("sent ACK")
+                    
 
             
             

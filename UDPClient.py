@@ -107,12 +107,4 @@ if __name__ == '__main__':
                     send_ack()
                     print("sent ACK")
                     
-
-            
-            
-
-            '''
-            modifiedMessage, serverAddress = clientSocket.recvfrom(2048)
-            print (modifiedMessage.decode())
-            '''
-            #clientSocket.close()
+            clientSocket.close()

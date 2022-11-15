@@ -70,6 +70,7 @@ if __name__ == '__main__':
                 if(dataGram.UDP_SYN_FLAG ==  1 and dataGram.UDP_ACK_FLAG == 1):
                     print("recieved SYN and ACK")
                     send_ack()
+                    print("sent ACK")
 
                 path = input("please enter path: ")
                 while path:
@@ -82,10 +83,17 @@ if __name__ == '__main__':
                         break
                     else:
                         if '\n' in dataGram.TEXT: print(f"202, {dataGram.TEXT}", end = "")
-                        else: print(f"202, {dataGram.TEXT}")
+                        else: 
+                            print(f"202, {dataGram.TEXT}")
+                        if(path.find('\\')):
+                            path = path[path.find('\\')+1:]
+                        f = open(path,'w+')
+                        f.write(dataGram.TEXT)
                         if(not dataGram.HTTP_INCLUDED_OBJECT):
-                          break
+                            f.close()
+                            break
                         else:
+                            f.write(dataGram.HTTP_INCLUDED_OBJECT)
                             if(dataGram.HTTP_CLIENT_VERSION == 1.1): path = dataGram.HTTP_INCLUDED_OBJECT
                             else:
                                 path = dataGram.HTTP_INCLUDED_OBJECT
@@ -97,6 +105,8 @@ if __name__ == '__main__':
                                     print("recieved FIN & ACK")
                                     send_ack()
                                     print("sent ACK")
+                    f.close()
+                    
 
                 send_fin()
                 print("sent FIN")
